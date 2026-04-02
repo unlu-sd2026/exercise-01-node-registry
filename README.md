@@ -30,9 +30,9 @@ This exercise covers the following topics from the course syllabus:
 
 ## Automated grading
 
-This exercise has **automated testing**. When you push to your fork, a grader will run hidden tests and post a ✅/❌ comment on your latest commit within 10 minutes.
+Every time you push to your fork, we will run a set of hidden tests that validate whether you have included all the required details and covered the expected behavior. Within 10 minutes you will receive a ✅/❌ comment directly on your latest commit.
 
-Hidden tests verify:
+Hidden tests cover:
 - All 6 endpoints with edge cases
 - PostgreSQL integration (real DB, not mocked)
 - Dockerfile best practices (non-root, slim image, EXPOSE, no secrets)
@@ -40,7 +40,7 @@ Hidden tests verify:
 - Data persists between requests
 - Soft delete behavior
 
-You have a maximum of **5 submissions**. Make them count.
+You have a maximum of **5 submissions**. It's a nice challenge — let's build it together.
 
 ---
 
