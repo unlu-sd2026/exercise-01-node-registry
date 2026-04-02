@@ -33,12 +33,13 @@ This exercise covers the following topics from the course syllabus:
 Every time you push to your fork, we will run a set of hidden tests that validate whether you have included all the required details and covered the expected behavior. Within 10 minutes you will receive a ✅/❌ comment directly on your latest commit.
 
 Hidden tests cover:
-- All 6 endpoints with edge cases
+- All 6 endpoints with edge cases and validation errors
 - PostgreSQL integration (real DB, not mocked)
-- Dockerfile best practices (non-root, slim image, EXPOSE, no secrets)
-- docker-compose.yml configuration (2 services, depends_on, port mapping)
+- Dockerfile best practices: non-root user, slim image, pinned version (no `:latest`), `EXPOSE`, `HEALTHCHECK`, multi-stage build, layer caching, no hardcoded secrets, image under 200MB
+- `.dockerignore` exists and excludes `.git`
+- docker-compose.yml: 2+ services, `depends_on`, port mapping, no hardcoded passwords
 - Data persists between requests
-- Soft delete behavior
+- Soft delete behavior (status = inactive, not hard delete)
 
 You have a maximum of **5 submissions**. It's a nice challenge — let's build it together.
 
@@ -176,26 +177,56 @@ Table: `nodes`
 ## Docker requirements
 
 ### Dockerfile
-- Base image: `python:3.14-slim` (pin the version — no `:latest`)
-- Install dependencies from `requirements.txt`
-- Run as a **non-root** user
-- `EXPOSE 8080`
-- Start: `uvicorn src.app:app --host 0.0.0.0 --port 8080`
+
+Your Dockerfile must follow **production best practices**. All of these are tested:
+
+| # | Requirement | Why |
+|---|-------------|-----|
+| 1 | **Pin base image version** — use `python:3.14-slim`, never `:latest` | Reproducible builds; `:latest` changes without notice |
+| 2 | **Non-root user** — add a `USER` directive (not root, not uid 0) | Security: if the container is compromised, the attacker has limited permissions |
+| 3 | **Multi-stage build** — use 2+ `FROM` instructions | Smaller final image: build deps stay in the builder stage |
+| 4 | **Layer caching** — `COPY requirements.txt` + `RUN pip install` BEFORE `COPY . .` | Avoids reinstalling all deps on every code change |
+| 5 | **`EXPOSE 8080`** | Documents the port; required for some orchestrators |
+| 6 | **`HEALTHCHECK`** | Allows Docker/Compose/K8s to detect unhealthy containers |
+| 7 | **No hardcoded secrets** — no `ENV PASSWORD=...` or `ENV SECRET_KEY=...` | Secrets belong in env vars at runtime, not baked into the image |
+| 8 | **Final image under 200MB** | Slim images deploy faster and have smaller attack surface |
+
+### .dockerignore
+
+Create a `.dockerignore` file that excludes at minimum:
+
+```
+.git
+__pycache__
+*.pyc
+.env
+venv/
+.venv/
+```
+
+This prevents unnecessary files from being sent to the Docker build context.
 
 ### docker-compose.yml
-- **Two services**: `api` and `db`
-- `db`: PostgreSQL (use `postgres:17-alpine`)
-- `api`: your Dockerfile, depends on `db`
-- `api` must expose port `8080` on the host
-- Use environment variables for DB connection (not hardcoded)
+
+| Requirement | Details |
+|-------------|---------|
+| **Two services** | `api` (your app) and `db` (PostgreSQL) |
+| **DB image** | `postgres:17-alpine` |
+| **depends_on** | `api` must depend on `db` |
+| **Port mapping** | `api` exposes port `8080` on the host |
+| **No hardcoded passwords** | Use `env_file` or `${VAR}` references, not plain text passwords in the YAML |
+| **Environment variables** | Pass `DATABASE_URL` to the API service |
 
 ### .env.example
+
 ```
 POSTGRES_USER=noderegistry
 POSTGRES_PASSWORD=noderegistry
 POSTGRES_DB=noderegistry
 DATABASE_URL=postgresql://noderegistry:noderegistry@db:5432/noderegistry
 ```
+
+Copy to `.env` before running. Never commit `.env` to git.
 
 ---
 
