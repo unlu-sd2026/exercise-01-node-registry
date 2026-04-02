@@ -42,6 +42,8 @@ Hidden tests cover:
 
 You have a maximum of **5 submissions**. It's a nice challenge — let's build it together.
 
+**Deadline: Friday, April 10, 2026 at 23:59 UTC-3** (3 late days allowed with penalty)
+
 ---
 
 ## Context
