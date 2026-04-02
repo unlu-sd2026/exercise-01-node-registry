@@ -9,6 +9,8 @@ permissions:
 
 jobs:
   sanity-check:
+    # Only run on forks, not on the template repo itself
+    if: github.repository != 'unlu-sd2026/exercise-01-node-registry'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
